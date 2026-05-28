@@ -15,7 +15,12 @@ export default function App() {
       try {
         const res = await fetch("/api/festivals");
         if (!res.ok) {
-          throw new Error("Failed to fetch festivals from server");
+          let errText = "요청에 실패했습니다.";
+          try {
+             const errJson = await res.json();
+             if (errJson.error) errText = errJson.error;
+          } catch(e) {}
+          throw new Error(`Failed to fetch festivals from server: ${errText}`);
         }
         const data: FestivalAPIResponse = await res.json();
         

@@ -6,17 +6,26 @@ const apiRouter = Router();
 apiRouter.get("/festivals", async (req, res) => {
   try {
     // Load service key from environment variable safely, with fallback to provided key if missing during testing
-    const serviceKey = process.env.FESTIVAL_API_KEY || "8qw7g%2FC%2BMGd2iRqEvb%2FEx0Sg3ZwAAsnS%2FQ7rRaU3l4UUYfNWgyAbYpNw541yy9pueEvoCcNwmCww8ss32BBWEA%3D%3D";
+    const serviceKey = process.env.FESTIVAL_API_KEY;
     
     const apiURL = `https://apis.data.go.kr/6260000/FestivalService/getFestivalKr?serviceKey=${serviceKey}&pageNo=1&numOfRows=100&resultType=json`;
     
     const response = await fetch(apiURL);
     if (!response.ok) {
-      throw new Error(`API call failed with status: ${response.status}`);
+      let errorText = "";
+      try { errorText = await response.text(); } catch (e) {}
+      throw new Error(`API call failed with status: ${response.status}. Details: ${errorText}`);
     }
     
-    const data = await response.json();
-    res.json(data);
+    const text = await response.text();
+    try {
+      const data = JSON.parse(text);
+      res.json(data);
+    } catch (e) {
+      console.error("Invalid JSON response from Public API:", text);
+      res.status(500).json({ error: "Invalid response from Public API. It might be blocking the server's IP region.", textResponse: text });
+      return;
+    }
   } catch (error) {
     console.error("Error fetching festival data:", error);
     res.status(500).json({ error: "Failed to fetch festival data" });

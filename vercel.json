@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**/*": {
+      "region": "icn1"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
